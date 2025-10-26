@@ -1,20 +1,29 @@
-import os
-from config import model_settings
+import subprocess
+from subprocess import CalledProcessError
 from loguru import logger
+import time
 
-class ModelDeploymentService:
-    def __init__(self):
-        self.model = model_settings.model
+
+class OllamaService:
+    def __init__(self, initialisation_buffer=2):
         self.deployed = False
+        self.initialisation_buffer = initialisation_buffer
+        self.ollama_process = None
 
-    def run_model(self) -> None:
-        if self.deployed:
-            logger.info(f"Model {self.model} is already deployed")
+    def start_ollama_server(self) -> None:
+        try:
+            self.ollama_process = subprocess.Popen(self.build_ollama_run_command())
+        except CalledProcessError:
+            logger.warning("Ollama service failed to start")
+            return
 
-        os.system(self.build_model_run_command)
-
-        logger.info(f"Model {self.model} deployed")
+        time.sleep(self.initialisation_buffer)
+        logger.info("Ollama service started")
         self.deployed = True
 
-    def build_model_run_command(self):
-        return f"ollama run {self.model}"
+    def stop_ollama_server(self) -> None:
+        logger.info(f"Closing Ollama server with pid {self.ollama_process.pid}.")
+        self.ollama_process.terminate()
+
+    def build_ollama_run_command(self):
+        return ["ollama", "serve"]

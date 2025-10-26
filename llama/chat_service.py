@@ -1,15 +1,9 @@
-from ollama_python import chat, ChatResponse
+from ollama import generate, ChatResponse
 
-class LlamaChatService:
 
+class OllamaGenerateService:
     def __init__(self, model: str):
         self.model = model
 
-    def queryModel(self, prompt: str) -> ChatResponse:
-        return self.model.chat(
-            {
-                "content": prompt
-            }
-        )
-        
-        
+    def query_model(self, prompt: str, image_location: str) -> ChatResponse:
+        return generate(model=self.model, prompt=prompt, images=[image_location])
